@@ -68,7 +68,7 @@ export function runPartB({
   initialCash = 10000
 }: PartBInput): PartBOutput {
 
-  const portfolioSeries = buildPortfolioSeries(priceData, tradeLog, initialCash)
+  const portfolioSeries = buildPortfolio(priceData, tradeLog, initialCash)
   const benchmarkSeries = buildBenchmarkSeries(sp500Data, initialCash)
 
   const portfolioMetrics: Metrics = {
