@@ -15,7 +15,7 @@ export interface BollingerBand {
   lower: number;
 }
 
-
+// ── All indicators from frontend ───
 export interface Indicators {
   ma20: (number | null)[];
   ma50: (number | null)[];
