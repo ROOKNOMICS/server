@@ -53,4 +53,5 @@ export function buildPortfolio(
       value: Math.round(cash + shares * day.close)
     })
   }
+  return series
 }
