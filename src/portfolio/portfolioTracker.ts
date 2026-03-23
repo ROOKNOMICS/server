@@ -20,7 +20,7 @@ interface PortfolioDay {
   value: number;
 }
 
-export function buildPorfolio(
+export function buildPortfolio(
   priceData: PriceDay[],
   tradeLog: Trade[],
   initialCash: number = 10000,
@@ -53,4 +53,5 @@ export function buildPorfolio(
       value: Math.round(cash + shares * day.close)
     })
   }
+  return series
 }
