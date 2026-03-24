@@ -16,6 +16,29 @@ export function runBacktest(
   activeRuleNames: string[],
   capital: number = 10000
 ): BacktestResult {
+  if (prices.length === 0) {
+    return {
+      equityCurve: [],
+      tradeLog: [],
+      metrics: calculateMetrics([], [], capital),
+      activeRules: activeRuleNames,
+      benchmarkReturn: 0,
+      benchmarkFinalValue: round2(capital),
+    };
+  }
+
+  const firstBar = prices[0];
+  const lastBar = prices[prices.length - 1];
+  if (!firstBar || !lastBar) {
+    return {
+      equityCurve: [],
+      tradeLog: [],
+      metrics: calculateMetrics([], [], capital),
+      activeRules: activeRuleNames,
+      benchmarkReturn: 0,
+      benchmarkFinalValue: round2(capital),
+    };
+  }
 
   // ── Initial portfolio state ───────────────────────────
   const state: PortfolioState = {
@@ -33,6 +56,7 @@ export function runBacktest(
   for (let i = 1; i < prices.length; i++) {
     const today = prices[i];
     if (!today) continue;
+    const todayDate = today.date ?? '';
     const price = today.close;
 
     // Keep trailing high updated while in position
@@ -40,14 +64,15 @@ export function runBacktest(
       state.trailingHigh = Math.max(state.trailingHigh, price);
     }
 
-    // Check buy signals across all active rules
-    const shouldBuy = state.shares === 0 && activeRuleNames.some(
-      name => RULES[name]?.buySignal(i, prices, indicators, state) ?? false
-    );
-
-    // Check sell signals across all active rules
+    // Sell takes PRIORITY over buy on the same day
+    // (risk management should always win)
     const shouldSell = state.shares > 0 && activeRuleNames.some(
       name => RULES[name]?.sellSignal(i, prices, indicators, state) ?? false
+    );
+
+    // Only check buy if we're not already selling
+    const shouldBuy = !shouldSell && state.shares === 0 && activeRuleNames.some(
+      name => RULES[name]?.buySignal(i, prices, indicators, state) ?? false
     );
 
     // ── Execute BUY ────────────────────────────────────
@@ -83,7 +108,7 @@ export function runBacktest(
       const proceeds = state.shares * price;
       const pnl = proceeds - state.shares * state.entryPrice;
       const pnlPct = (pnl / (state.shares * state.entryPrice)) * 100;
-      const holding = state.entryDate
+      const holding = state.entryDate && today.date
         ? daysBetween(state.entryDate, today.date)
         : 0;
 
@@ -92,7 +117,7 @@ export function runBacktest(
       ) ?? 'Unknown';
 
       tradeLog.push({
-        date: today.date,
+        date: todayDate,
         type: 'SELL',
         price: round2(price),
         shares: state.shares,
@@ -113,7 +138,7 @@ export function runBacktest(
     // ── Record today's portfolio value ─────────────────
     const portfolioValue = state.cash + state.shares * price;
     equityCurve.push({
-      date: today.date,
+      date: todayDate,
       value: round2(portfolioValue),
     });
   }
@@ -121,10 +146,18 @@ export function runBacktest(
   // ── Compute all metrics after loop ────────────────────
   const metrics = calculateMetrics(equityCurve, tradeLog, capital);
 
+  const buyHoldShares = Math.floor(capital / firstBar.close);
+  const buyHoldFinalValue = buyHoldShares * lastBar.close
+    + (capital - buyHoldShares * firstBar.close);
+  const benchmarkReturn = round2(
+    (buyHoldFinalValue - capital) / capital * 100
+  );
   return {
     equityCurve,
     tradeLog,
     metrics,
     activeRules: activeRuleNames,
+    benchmarkReturn,
+    benchmarkFinalValue: round2(buyHoldFinalValue),
   };
 }

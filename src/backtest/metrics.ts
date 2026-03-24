@@ -79,3 +79,40 @@ export function calculateMetrics(
     totalTrades: completedTrades.length,
   };
 }
+
+export type VerdictType = 'outperform' | 'underperform' | 'neutral';
+
+export interface Verdict {
+  type: VerdictType;
+  title: string;
+  description: string;
+}
+
+export function generateVerdict(
+  metrics: BacktestMetrics,
+  benchmarkReturn: number
+): Verdict {
+  const diff = metrics.totalReturn - benchmarkReturn;
+
+  if (diff > 5 && metrics.sharpeRatio > 1) {
+    return {
+      type: 'outperform',
+      title: 'STRATEGY BEATS THE MARKET',
+      description: `Your strategy returned ${metrics.totalReturn}% vs the benchmark's ${benchmarkReturn}%. With a Sharpe ratio of ${metrics.sharpeRatio}, you achieved better risk-adjusted returns.`,
+    };
+  }
+
+  if (diff < -5 || metrics.maxDrawdown > 25) {
+    return {
+      type: 'underperform',
+      title: 'STRATEGY UNDERPERFORMS',
+      description: `Your strategy returned ${metrics.totalReturn}% vs the benchmark's ${benchmarkReturn}%. Consider adjusting your rules to reduce drawdown or improve entry timing.`,
+    };
+  }
+
+  return {
+    type: 'neutral',
+    title: 'STRATEGY MATCHES BENCHMARK',
+    description: `Your strategy returned ${metrics.totalReturn}% vs the benchmark's ${benchmarkReturn}%. The results are comparable — try tightening your rules for an edge.`,
+  };
+}
