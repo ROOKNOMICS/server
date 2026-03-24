@@ -1,28 +1,29 @@
 // src/engine/indicators.ts
-import { PriceDay } from '../api/fetchPrice'
+import { PriceDay } from '../api/fetchPrice.js'
 
 // What one indicator value looks like
 export interface IndicatorDay {
-  date:  string
-  value: number | null  // null means not enough history yet
+  date: string
+  value: number | null
+}
+
+export interface BollingerBandDay {
+  date: string
+  upper: number | null
+  mid: number | null
+  lower: number | null
 }
 
 export function calcMovingAverage(
   prices: PriceDay[],
-  period: number        // 50 for MA50, 200 for MA200
+  period: number
 ): IndicatorDay[] {
-
   return prices.map((day, index) => {
-
-    // Not enough history yet
     if (index < period - 1) {
       return { date: day.date, value: null }
     }
 
-    // Grab the last N days including today
     const slice = prices.slice(index - period + 1, index + 1)
-
-    // Average the closing prices
     const sum = slice.reduce((total, d) => total + d.close, 0)
     const avg = sum / period
 
@@ -30,30 +31,23 @@ export function calcMovingAverage(
   })
 }
 
-
 export function calcRSI(
   prices: PriceDay[],
   period: number = 14
 ): IndicatorDay[] {
-
   return prices.map((day, index) => {
-
-    // Not enough history yet
     if (index < period) {
       return { date: day.date, value: null }
     }
 
-    // Calculate the daily price changes over the period
     const changes: number[] = []
     for (let i = index - period + 1; i <= index; i++) {
       changes.push(prices[i]!.close - prices[i - 1]!.close)
     }
 
-    // Separate into gains and losses
-    const gains  = changes.filter(c => c > 0)
+    const gains = changes.filter(c => c > 0)
     const losses = changes.filter(c => c < 0).map(c => Math.abs(c))
 
-    // Average gain and average loss over the period
     const avgGain = gains.length > 0
       ? gains.reduce((a, b) => a + b, 0) / period
       : 0
@@ -62,12 +56,40 @@ export function calcRSI(
       ? losses.reduce((a, b) => a + b, 0) / period
       : 0
 
-    // Avoid dividing by zero — if no losses, RSI is 100
-    if (avgLoss === 0) return { date: day.date, value: 100 }
+    if (avgLoss === 0) {
+      return { date: day.date, value: 100 }
+    }
 
-    const rs  = avgGain / avgLoss
+    const rs = avgGain / avgLoss
     const rsi = 100 - (100 / (1 + rs))
 
     return { date: day.date, value: +rsi.toFixed(2) }
+  })
+}
+
+export function calcBollingerBands(
+  prices: PriceDay[],
+  period: number = 20,
+  stdDevMultiplier: number = 2
+): BollingerBandDay[] {
+  return prices.map((day, index) => {
+    if (index < period - 1) {
+      return { date: day.date, upper: null, mid: null, lower: null }
+    }
+
+    const slice = prices.slice(index - period + 1, index + 1)
+    const closes = slice.map(price => price.close)
+    const mean = closes.reduce((sum, close) => sum + close, 0) / period
+    const variance = closes.reduce((sum, close) => {
+      return sum + (close - mean) ** 2
+    }, 0) / period
+    const standardDeviation = Math.sqrt(variance)
+
+    return {
+      date: day.date,
+      upper: +(mean + standardDeviation * stdDevMultiplier).toFixed(4),
+      mid: +mean.toFixed(4),
+      lower: +(mean - standardDeviation * stdDevMultiplier).toFixed(4),
+    }
   })
 }

@@ -1,4 +1,4 @@
-import type { RulesMap } from './types';
+import type { RulesMap } from './types.js';
 
 export const RULES: RulesMap = {
 

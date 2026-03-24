@@ -1,84 +1,47 @@
-// src/engine/partB/index.ts
-
-import { buildPortfolio } from './portfolioTracker'
-import { buildBenchmarkSeries  } from './benchMarkTracker'
+import { buildPortfolio } from './portfolioTracker.js'
+import { buildBenchmarkSeries  } from './benchMarkTracker.js'
 import {
   calcTotalReturn,
   calcMaxDrawdown,
   calcSharpeRatio
-} from './metricsCalculator'
+} from './metricsCalculator.js'
+import type { PortfolioDay, PriceDay, Trade } from './portfolioTracker.js'
+import type { BenchmarkDay, SP500Day } from './benchMarkTracker.js'
+import type { PortfolioMetrics } from './metricsCalculator.js'
 
-// --- Input types ---
-
-interface PriceDay {
-  date:   string
-  open:   number
-  high:   number
-  low:    number
-  close:  number
-  volume: number
-}
-
-interface SP500Day {
-  date:  string
-  close: number
-}
-
-interface Trade {
-  date:   string
-  action: 'BUY' | 'SELL'
-  price:  number
-}
-
-interface PartBInput {
+export interface PortfolioAnalysisInput {
   priceData:   PriceDay[]
   sp500Data:   SP500Day[]
   tradeLog:    Trade[]
   initialCash?: number
 }
 
-// --- Output types ---
-
-interface SeriesDay {
-  date:  string
-  value: number
-}
-
-interface Metrics {
-  totalReturn:  number
-  maxDrawdown:  number
-  sharpeRatio:  number
-  totalTrades:  number
-}
-
-interface PartBOutput {
-  portfolioSeries:  SeriesDay[]
-  benchmarkSeries:  SeriesDay[]
+export interface PortfolioAnalysisOutput {
+  portfolioSeries:  PortfolioDay[]
+  benchmarkSeries:  BenchmarkDay[]
   tradeLog:         Trade[]
-  portfolioMetrics: Metrics
-  benchmarkMetrics: Metrics
+  portfolioMetrics: PortfolioMetrics
+  benchmarkMetrics: PortfolioMetrics
 }
 
-// --- Main function ---
-
-export function runPartB({
+export function runPortfolioAnalysis({
   priceData,
   sp500Data,
   tradeLog,
   initialCash = 10000
-}: PartBInput): PartBOutput {
+}: PortfolioAnalysisInput): PortfolioAnalysisOutput {
 
   const portfolioSeries = buildPortfolio(priceData, tradeLog, initialCash)
   const benchmarkSeries = buildBenchmarkSeries(sp500Data, initialCash)
 
-  const portfolioMetrics: Metrics = {
+  const portfolioMetrics: PortfolioMetrics = {
     totalReturn:  calcTotalReturn(portfolioSeries, initialCash),
     maxDrawdown:  calcMaxDrawdown(portfolioSeries),
     sharpeRatio:  calcSharpeRatio(portfolioSeries),
     totalTrades:  tradeLog.length
   }
 
-  const benchmarkMetrics: Metrics = {
+  const benchmarkMetrics: PortfolioMetrics = {
     totalReturn:  calcTotalReturn(benchmarkSeries, initialCash),
     maxDrawdown:  calcMaxDrawdown(benchmarkSeries),
     sharpeRatio:  calcSharpeRatio(benchmarkSeries),
