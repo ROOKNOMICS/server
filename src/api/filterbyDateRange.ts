@@ -1,5 +1,5 @@
 // src/api/filterByDateRange.ts
-import { PriceDay } from './fetchPrice'
+import { PriceDay } from './fetchPrice.js'
 
 export function filterByDateRange(
   prices:    PriceDay[],

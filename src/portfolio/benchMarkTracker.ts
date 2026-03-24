@@ -1,11 +1,9 @@
-// src/engine/benchmarkTracker.ts
-
-interface SP500Day {
+export interface SP500Day {
   date:  string
   close: number
 }
 
-interface BenchmarkDay {
+export interface BenchmarkDay {
   date:  string
   value: number
 }

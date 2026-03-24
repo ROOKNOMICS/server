@@ -1,8 +1,9 @@
 // src/api/fetchSP500.ts
-import { fetchPrices, PriceDay } from './fetchPrice'
+import { fetchPrices, PriceDay } from './fetchPrice.js'
 
-// SP500 is just SPY — the most popular S&P 500 index fund
-// It tracks the S&P 500 almost perfectly
-export async function fetchSP500(): Promise<PriceDay[]> {
-  return fetchPrices('SPY')
+export async function fetchSP500(
+  startDate: string,
+  endDate:   string
+): Promise<PriceDay[]> {
+  return fetchPrices('SPY', startDate, endDate)
 }
