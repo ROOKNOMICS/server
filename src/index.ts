@@ -10,12 +10,12 @@ app.get('/api/prices', GET)
 app.listen(3000,()=>{
   console.log('listening @ 3000')
 })
-async function main(): Promise<void> {
-  const symbol = 'AAPL'
-  const startDate = '2022-01-01'
-  const endDate = '2023-12-31'
-  const capital = 10000
-  const activeRules = ['MA Crossover', 'RSI Entry', 'Stop Loss']
+export default async function main(symbol: string, startDate:string, endDate:string, capital:number, activeRules: string[]): Promise<void> {
+  // const symbol = 'AAPL'
+  // const startDate = '2022-01-01'
+  // const endDate = '2023-12-1'
+  // const capital = 10000
+  // const activeRules = ['MA Crossover', 'RSI Entry', 'Stop Loss']
 
   const marketData = await prepareMarketData(symbol, startDate, endDate)
   const input = createBacktestInput(marketData, activeRules, capital)
@@ -36,6 +36,14 @@ async function main(): Promise<void> {
     initialCash: capital,
   })
   const verdict = generateVerdict(result.metrics, result.benchmarkReturn)
+  const response={
+    "verdict":{
+      "type": verdict.type.toUpperCase(),
+      "title": verdict.title,
+      "desc": verdict.description
+    },
+    "bench"
+  }
 
   console.log(`\nBacktest for ${marketData.symbol} (${startDate} to ${endDate})`)
   console.log('\nMetrics')
@@ -68,8 +76,3 @@ async function main(): Promise<void> {
 
 
 }
-
-main().catch(error => {
-  console.error('Backtest run failed:', error)
-  process.exitCode = 1
-})
