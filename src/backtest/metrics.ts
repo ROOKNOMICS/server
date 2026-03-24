@@ -1,5 +1,5 @@
-import type { EquityPoint, TradeEvent, BacktestMetrics } from './types';
-import { mean, stdDev, round2 } from './utils';
+import type { EquityPoint, TradeEvent, BacktestMetrics } from './types.js';
+import { mean, stdDev, round2 } from './utils.js';
 
 export function calculateMetrics(
   equityCurve: EquityPoint[],

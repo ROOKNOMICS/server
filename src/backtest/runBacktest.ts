@@ -1,6 +1,6 @@
-import { RULES } from './rules';
-import { calculateMetrics } from './metrics';
-import { daysBetween, round2 } from './utils';
+import { RULES } from './rules.js';
+import { calculateMetrics } from './metrics.js';
+import { daysBetween, round2 } from './utils.js';
 import type {
   Indicators,
   PortfolioState,
