@@ -69,6 +69,8 @@ export interface BacktestResult {
   tradeLog: TradeEvent[];
   metrics: BacktestMetrics;
   activeRules: string[];
+  benchmarkReturn: number;      
+  benchmarkFinalValue: number;  
 }
 
 
