@@ -4,14 +4,43 @@ import { generateVerdict } from './backtest/metrics.js'
 import { GET } from './api/prices.js'
 import { runPortfolioAnalysis } from './portfolio/index.js'
 import { runBacktest } from './backtest/runBacktest.js'
-import express from 'express'
-const app=express()
-app.get('/api/prices', GET)
-app.listen(3000,()=>{
-  console.log('listening @ 3000')
-})
-export default async function main(symbol: string, startDate:string, endDate:string, capital:number, activeRules: string[]
-): Promise<void> {
+import type { Verdict } from './backtest/metrics.js'
+import type { PortfolioMetrics } from './portfolio/metricsCalculator.js'
+
+
+export interface MainResponse {
+  verdict: {
+    type: Uppercase<Verdict['type']>
+    title: string
+    desc: string
+  }
+  benchmark: {
+    strategy: number
+    benchmark: number
+    finalValue: number
+  }
+  tradeLog: {
+    date: string
+    type: 'BUY' | 'SELL'
+    price: number
+  }[]
+  portfolioMatrics: PortfolioMetrics
+  benchmarkMatrics: PortfolioMetrics
+  combinedData: {
+    date: string
+    strategy: number
+    benchmark: number
+  }[]
+}
+
+const verdictTypeMap: Record<Verdict['type'], MainResponse['verdict']['type']> = {
+  outperform: 'OUTPERFORM',
+  underperform: 'UNDERPERFORM',
+  neutral: 'NEUTRAL',
+}
+
+const handlerResponse= async(symbol: string, startDate:string, endDate:string, capital:number, activeRules: string[]
+): Promise<MainResponse> =>{
   // const symbol = 'AAPL'
   // const startDate = '2022-01-01'
   // const endDate = '2023-12-1'
@@ -42,14 +71,15 @@ export default async function main(symbol: string, startDate:string, endDate:str
         type: item.type,
         price: item.price
       }))
-  const combinedData = portfolioResult.portfolioSeries.map((day, i) => ({
-  date:      day.date,
-  strategy:  day.value,
-  benchmark: portfolioResult.benchmarkSeries[i]?.value
-}))
-  const response={
+  const combinedData: MainResponse['combinedData'] = portfolioResult.portfolioSeries.map((day, i) => ({
+    date: day.date,
+    strategy: day.value,
+    benchmark: portfolioResult.benchmarkSeries[i]?.value ?? 0,
+  }))
+
+  const response: MainResponse = {
     "verdict":{
-      "type": verdict.type.toUpperCase(),
+      "type": verdictTypeMap[verdict.type],
       "title": verdict.title,
       "desc": verdict.description
     },
@@ -65,8 +95,7 @@ export default async function main(symbol: string, startDate:string, endDate:str
 
   }
   // console.log(response)
-  console.log(combinedData)
-
+  return response
   // console.log(`\nBacktest for ${marketData.symbol} (${startDate} to ${endDate})`)
   // console.log('\nMetrics')
   // console.log(result.metrics)
@@ -102,3 +131,4 @@ export default async function main(symbol: string, startDate:string, endDate:str
 //   console.error('Backtest run failed:', error)
 //   process.exitCode = 1
 // })
+export default handlerResponse
