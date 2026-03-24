@@ -1,11 +1,9 @@
-// src/engine/metricsCalculator.ts
-
-interface SeriesDay {
+export interface SeriesDay {
   date:  string
   value: number
 }
 
-interface Metrics {
+export interface PortfolioMetrics {
   totalReturn:  number
   maxDrawdown:  number
   sharpeRatio:  number

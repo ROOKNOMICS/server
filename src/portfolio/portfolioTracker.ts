@@ -1,44 +1,42 @@
-interface PriceDay {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
+export interface PriceDay {
+  date: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
 }
 
-// Define the shape of one trade
-interface Trade {
-  date: string;
-  action: "BUY" | "SELL";
-  price: number;
+export interface Trade {
+  date: string
+  action: 'BUY' | 'SELL'
+  price: number
 }
 
-// Define the shape of one day's portfolio snapshot
-interface PortfolioDay {
-  date: string;
-  value: number;
+export interface PortfolioDay {
+  date: string
+  value: number
 }
 
 export function buildPortfolio(
   priceData: PriceDay[],
   tradeLog: Trade[],
-  initialCash: number = 10000,
+  initialCash: number = 10000
 ) {
-  let cash: number = initialCash;
-  let shares: number = 0;
-  const tradeMap: Record<string, Trade> = {};
+  let cash: number = initialCash
+  let shares: number = 0
+  const tradeMap: Record<string, Trade> = {}
+
   for (const trade of tradeLog) {
-    tradeMap[trade.date] = trade;
+    tradeMap[trade.date] = trade
   }
-    const series: PortfolioDay[] = []
 
+  const series: PortfolioDay[] = []
 
+  for (const day of priceData) {
+    const trade = tradeMap[day.date]
 
-
-  for (const day of priceData){
-    const trade=tradeMap[day.date]
-     if (trade?.action === 'BUY' && cash > 0) {
+    if (trade?.action === 'BUY' && cash > 0) {
       shares = cash / trade.price
       cash   = 0
     }
@@ -49,9 +47,10 @@ export function buildPortfolio(
     }
 
     series.push({
-      date:  day.date,
-      value: Math.round(cash + shares * day.close)
+      date: day.date,
+      value: Math.round(cash + shares * day.close),
     })
   }
+
   return series
 }
