@@ -20,5 +20,8 @@
   "homepage": "https://github.com/ROOKNOMICS/server#readme",
   "devDependencies": {
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "tsx": "^4.21.0"
   }
 }
