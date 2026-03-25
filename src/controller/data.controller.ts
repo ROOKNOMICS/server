@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import handlerResponse from '../index.js'
+import handlerResponse, { RulesConfig } from '../index.js'
 
 interface BacktestRequestBody {
   symbol?: string
@@ -7,13 +7,14 @@ interface BacktestRequestBody {
   endDate?: string
   capital?: number
   activeRules?: string[]
+  rulesConfig: RulesConfig
 }
 
 const backtestController = async (
   req: Request<unknown, unknown, BacktestRequestBody>,
   res: Response
 ) => {
-  const { symbol, startDate, endDate, capital, activeRules } = req.body
+  const { symbol, startDate, endDate, capital, activeRules, rulesConfig } = req.body
 
   if (
     typeof symbol !== 'string' ||
@@ -35,7 +36,8 @@ const backtestController = async (
       startDate,
       endDate,
       capital,
-      activeRules
+      activeRules,
+      rulesConfig
     )
 
     return res.status(200).json(response)
