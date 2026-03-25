@@ -32,6 +32,20 @@ export interface MainResponse {
     benchmark: number
   }[]
 }
+export interface RulesConfig {
+  rsi?: {
+    enabled:   boolean
+    period:    number
+    buyBelow:  number
+    sellAbove: number
+  }
+  maCross?: {
+    enabled:    boolean
+    type:       'SMA' | 'EMA'
+    fastPeriod: number
+    slowPeriod: number
+  }
+}
 
 const verdictTypeMap: Record<Verdict['type'], MainResponse['verdict']['type']> = {
   outperform: 'OUTPERFORM',
@@ -39,7 +53,7 @@ const verdictTypeMap: Record<Verdict['type'], MainResponse['verdict']['type']> =
   neutral: 'NEUTRAL',
 }
 
-const handlerResponse= async(symbol: string, startDate:string, endDate:string, capital:number, activeRules: string[]
+const handlerResponse= async(symbol: string, startDate:string, endDate:string, capital:number, activeRules: string[], rulesConfig: RulesConfig
 ): Promise<MainResponse> =>{
   // const symbol = 'AAPL'
   // const startDate = '2022-01-01'
@@ -53,7 +67,8 @@ const handlerResponse= async(symbol: string, startDate:string, endDate:string, c
     input.prices,
     input.indicators,
     input.activeRuleNames,
-    input.capital
+    input.capital,
+    rulesConfig
   )
   const portfolioResult = runPortfolioAnalysis({
     priceData: marketData.prices,
