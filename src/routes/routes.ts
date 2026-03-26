@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import backtestController from '../controller/data.controller.js'
 import { GET } from '../api/prices.js'
 import cors from 'cors'
-import connectDB from '../config/db';
-import authRoutes from './authRoutes';
+import connectDB from '../config/db.js';
+import authRoutes from './authRoutes.js';
 
 dotenv.config();
 
