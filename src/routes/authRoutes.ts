@@ -4,8 +4,8 @@ import {
   login,
   googleAuth,
   getMe,
-} from '../controller/authController';
-import { protect } from '../middleware/authMiddleware';
+} from '../controller/authController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = Router();
 router.post('/register', register);
