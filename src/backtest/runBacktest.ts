@@ -34,30 +34,26 @@ export function runBacktest(
   rulesConfig:     RulesConfig
 ): BacktestResult {
 
-  // ── Inject rulesConfig values into RULES before simulation ───────────
-  // This patches the thresholds inside each rule using the slider values
-  // so that buySignal and sellSignal use the correct user-defined values
-
+  
   if (rulesConfig.rsi?.enabled && RULES['RSI Entry']) {
     const rsiRule = RULES['RSI Entry'] as any
-    rsiRule._buyBelow  = rulesConfig.rsi.buyBelow   // e.g. 30
-    rsiRule._sellAbove = rulesConfig.rsi.sellAbove  // e.g. 70
-    rsiRule._period    = rulesConfig.rsi.period     // e.g. 14
+    rsiRule._buyBelow  = rulesConfig.rsi.buyBelow  
+    rsiRule._sellAbove = rulesConfig.rsi.sellAbove  
+    rsiRule._period    = rulesConfig.rsi.period    
   }
 
   if (rulesConfig.maCross?.enabled && RULES['MA Crossover']) {
     const maRule = RULES['MA Crossover'] as any
-    maRule._fastPeriod = rulesConfig.maCross.fastPeriod  // e.g. 50
-    maRule._slowPeriod = rulesConfig.maCross.slowPeriod  // e.g. 200
-    maRule._type       = rulesConfig.maCross.type        // 'SMA' or 'EMA'
+    maRule._fastPeriod = rulesConfig.maCross.fastPeriod  
+    maRule._slowPeriod = rulesConfig.maCross.slowPeriod  
+    maRule._type       = rulesConfig.maCross.type       
   }
 
-  // ── Filter activeRuleNames based on what is actually enabled ─────────
-  // If a rule is in activeRuleNames but disabled in rulesConfig, remove it
+  
   const filteredRuleNames = activeRuleNames.filter(name => {
     if (name === 'RSI Entry')    return rulesConfig.rsi?.enabled    ?? true
     if (name === 'MA Crossover') return rulesConfig.maCross?.enabled ?? true
-    return true  // keep all other rules like Stop Loss as-is
+    return true 
   })
 
   if (prices.length === 0) {
@@ -85,7 +81,7 @@ export function runBacktest(
     };
   }
 
-  // ── Initial portfolio state ───────────────────────────────────────────
+  
   const state: PortfolioState = {
     cash:         capital,
     shares:       0,
@@ -97,7 +93,7 @@ export function runBacktest(
   const equityCurve: EquityPoint[] = [];
   const tradeLog:    TradeEvent[]  = [];
 
-  // ── Day by day simulation loop ────────────────────────────────────────
+
   for (let i = 1; i < prices.length; i++) {
     const today = prices[i];
     if (!today) continue;
@@ -105,23 +101,18 @@ export function runBacktest(
     const todayDate = today.date ?? '';
     const price     = today.close;
 
-    // Keep trailing high updated while in position
     if (state.shares > 0) {
       state.trailingHigh = Math.max(state.trailingHigh, price);
     }
 
-    // Sell takes PRIORITY over buy on the same day
-    // Uses filteredRuleNames so disabled rules are excluded
     const shouldSell = state.shares > 0 && filteredRuleNames.some(
       name => RULES[name]?.sellSignal(i, prices, indicators, state) ?? false
     );
 
-    // Only check buy if we are not already selling
     const shouldBuy = !shouldSell && state.shares === 0 && filteredRuleNames.some(
       name => RULES[name]?.buySignal(i, prices, indicators, state) ?? false
     );
 
-    // ── Execute BUY ──────────────────────────────────────────────────────
     if (shouldBuy) {
       const sharesToBuy = Math.floor(state.cash / price);
 
@@ -150,7 +141,6 @@ export function runBacktest(
       }
     }
 
-    // ── Execute SELL ─────────────────────────────────────────────────────
     else if (shouldSell) {
       const proceeds = state.shares * price;
       const pnl      = proceeds - state.shares * state.entryPrice;
@@ -182,7 +172,6 @@ export function runBacktest(
       state.trailingHigh = 0;
     }
 
-    // ── Record today's portfolio value ───────────────────────────────────
     const portfolioValue = state.cash + state.shares * price;
     equityCurve.push({
       date:  todayDate,
@@ -190,7 +179,6 @@ export function runBacktest(
     });
   }
 
-  // ── Compute all metrics after loop ────────────────────────────────────
   const metrics = calculateMetrics(equityCurve, tradeLog, capital);
 
   const buyHoldShares     = Math.floor(capital / firstBar.close);

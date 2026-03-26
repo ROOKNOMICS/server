@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/routes/routes.js",
     "dev": "npx tsc && node dist/routes/routes.js"
   },
   "repository": {
