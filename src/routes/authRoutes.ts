@@ -4,11 +4,15 @@ import {
   login,
   googleAuth,
   getMe,
+  verifyOTP,
+  resendOTP
 } from '../controller/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = Router();
 router.post('/register', register);
+router.post('/verify-otp',  verifyOTP);   
+router.post('/resend-otp',  resendOTP);
 router.post('/login', login);
 router.post('/google', googleAuth);
 router.get('/me', protect, getMe);

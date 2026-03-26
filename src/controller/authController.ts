@@ -1,31 +1,135 @@
 import { Request, Response } from 'express';
 import User from '../models/User.js';
 import { generateToken } from '../utils/generateToken.js';
+import bcrypt from 'bcryptjs';
+import PendingOTP from '../models/PendingOTP.js';
+import { generateOTP, hashOTP } from '../utils/otp.js';
+import { sendEmail } from '../utils/email.js';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, password } = req.body;
 
+    // Basic validation
     if (!name || !email || !password) {
       res.status(400).json({ message: 'All fields are required' });
       return;
     }
+
+    if (password.length < 6) {
+      res.status(400).json({ message: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    // Check if email already has a verified account
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(400).json({ message: 'Email already registered' });
       return;
     }
 
-    const user = await User.create({
+    // Hash password now — safe to store in PendingOTP temporarily
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Delete any existing pending OTP for this email (resend scenario)
+    await PendingOTP.deleteOne({ email });
+
+    // Store registration data + OTP hash temporarily
+    await PendingOTP.create({
       name,
       email,
-      password,
+      password: hashedPassword,
+      otpHash,
+      expiresAt,
+      attempts: 0,
+    });
+
+    // Send OTP email
+    await sendEmail(email, otp);
+
+    res.status(200).json({
+      message: 'OTP sent to your email. Please verify to complete registration.',
+      email, // send back so frontend knows which email to show on OTP screen
+    });
+
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+};
+
+// ── VERIFY OTP → check hash, create real user, return JWT ─
+export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      res.status(400).json({ message: 'Email and OTP are required' });
+      return;
+    }
+
+    // Find the pending OTP document for this email
+    const pending = await PendingOTP.findOne({ email });
+
+    if (!pending) {
+      res.status(400).json({
+        message: 'OTP expired or not found. Please register again.',
+      });
+      return;
+    }
+
+    // Check if OTP has expired (double check — TTL handles cleanup but
+    // there's a small window where doc exists but is expired)
+    if (pending.expiresAt < new Date()) {
+      await PendingOTP.deleteOne({ email });
+      res.status(400).json({ message: 'OTP has expired. Please register again.' });
+      return;
+    }
+
+    // Track wrong attempts — lock after 5 tries
+    if (pending.attempts >= 5) {
+      await PendingOTP.deleteOne({ email });
+      res.status(400).json({
+        message: 'Too many wrong attempts. Please register again.',
+      });
+      return;
+    }
+
+    // Hash the incoming OTP and compare
+    const incomingHash = hashOTP(otp);
+
+    if (incomingHash !== pending.otpHash) {
+      // Increment wrong attempt counter
+      await PendingOTP.updateOne({ email }, { $inc: { attempts: 1 } });
+
+      const attemptsLeft = 4 - pending.attempts;
+      res.status(400).json({
+        message: `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining.`,
+      });
+      return;
+    }
+
+    // ── OTP is correct — now create the real user ──────────
+    const user = await User.create({
+      name: pending.name,
+      email: pending.email,
+      password: pending.password, // already hashed
       provider: 'local',
     });
 
+    // Clean up the pending OTP document
+    await PendingOTP.deleteOne({ email });
+
+    // Generate JWT and return — user is now logged in
     const token = generateToken(user._id);
 
     res.status(201).json({
+      message: 'Email verified. Account created successfully.',
       token,
       user: {
         id: user._id,
@@ -34,11 +138,65 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         avatar: user.avatar,
       },
     });
+
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    console.error('Verify OTP error:', error);
+    res.status(500).json({ message: 'Server error during OTP verification' });
   }
 };
+
+// ── RESEND OTP → generate fresh OTP, replace old, resend ──
+export const resendOTP = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ message: 'Email is required' });
+      return;
+    }
+
+    // Check if there's a pending registration for this email
+    const pending = await PendingOTP.findOne({ email });
+
+    if (!pending) {
+      res.status(400).json({
+        message: 'No pending registration found. Please register first.',
+      });
+      return;
+    }
+
+    // Generate a brand new OTP
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // fresh 10 minutes
+
+    // Replace old OTP hash, reset expiry and attempts
+    await PendingOTP.updateOne(
+      { email },
+      {
+        otpHash,
+        expiresAt,
+        attempts: 0,   // reset wrong attempt counter
+      }
+    );
+
+    // Resend the email with new OTP
+    await sendEmail(email, otp);
+
+    res.status(200).json({
+      message: 'A new OTP has been sent to your email.',
+    });
+
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    res.status(500).json({ message: 'Server error during OTP resend' });
+  }
+};
+
+
+
+
+
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
