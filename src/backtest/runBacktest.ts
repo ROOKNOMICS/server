@@ -9,7 +9,7 @@ import type {
   BacktestResult,
   PriceBar,
   Rule
-} from './types';
+} from './types.js';
 
 export interface RulesConfig {
   rsi?: {
