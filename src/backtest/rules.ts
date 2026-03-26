@@ -2,7 +2,6 @@ import type { RulesMap } from './types.js';
 
 export const RULES: RulesMap = {
 
-  // ── MA Crossover ──────────────────────────────────────
   "MA Crossover": {
     buySignal: (i, prices, indicators) => {
       const { ma20, ma50 } = indicators;
@@ -16,7 +15,7 @@ export const RULES: RulesMap = {
     }
   },
 
-  // ── RSI Entry/Exit ────────────────────────────────────
+
   "RSI Entry": {
     buySignal: (i, prices, indicators) => {
       const rsi = indicators.rsi14;
@@ -30,7 +29,7 @@ export const RULES: RulesMap = {
     }
   },
 
-  // ── Stop Loss ─────────────────────────────────────────
+  
   "Stop Loss": {
     buySignal: () => false,
     sellSignal: (i, prices, indicators, state) => {
@@ -41,7 +40,7 @@ export const RULES: RulesMap = {
     }
   },
 
-  // ── Trailing Stop ─────────────────────────────────────
+  
   "Trailing Stop": {
     buySignal: () => false,
     sellSignal: (i, prices, indicators, state) => {
@@ -52,7 +51,7 @@ export const RULES: RulesMap = {
     }
   },
 
-  // ── Bollinger Band Bounce ─────────────────────────────
+  
   "Bollinger Bands": {
     buySignal: (i, prices, indicators) => {
       const bb = indicators.bb[i];

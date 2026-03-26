@@ -1,4 +1,4 @@
-// ── Raw price data from T1 ──────────────
+
 export interface PriceBar {
   date: string;
   open: number;

@@ -19,12 +19,10 @@ export function calculateMetrics(
     };
   }
 
-  // ── Total Return ───────────────────────────────────────
+   
   const finalPoint = equityCurve[equityCurve.length - 1]!;
   const finalValue = finalPoint.value;
   const totalReturn = round2((finalValue - initialCapital) / initialCapital * 100);
-
-  // ── Max Drawdown ───────────────────────────────────────
   let peak = -Infinity;
   let maxDrawdown = 0;
   for (const point of equityCurve) {
@@ -34,7 +32,7 @@ export function calculateMetrics(
   }
   maxDrawdown = round2(maxDrawdown * 100);
 
-  // ── Sharpe Ratio ───────────────────────────────────────
+
   const dailyReturns = equityCurve.map((point, i) => {
     if (i === 0) return 0;
     const previousPoint = equityCurve[i - 1]!;
@@ -46,14 +44,14 @@ export function calculateMetrics(
     ? 0
     : round2((avgDailyReturn / daily_StdDev) * Math.sqrt(252));
 
-  // ── Win Rate ───────────────────────────────────────────
+  
   const completedTrades = tradeLog.filter(t => t.type === 'SELL');
   const winningTrades = completedTrades.filter(t => (t.pnl ?? 0) > 0);
   const winRate = completedTrades.length === 0
     ? 0
     : round2((winningTrades.length / completedTrades.length) * 100);
 
-  // ── Profit Factor ──────────────────────────────────────
+  
   const grossProfit = completedTrades
     .filter(t => (t.pnl ?? 0) > 0)
     .reduce((sum, t) => sum + (t.pnl ?? 0), 0);
@@ -64,7 +62,7 @@ export function calculateMetrics(
     ? grossProfit > 0 ? 999 : 0
     : round2(grossProfit / grossLoss);
 
-  // ── Average Holding Days ───────────────────────────────
+ 
   const holdingDays = completedTrades.map(t => t.holdingDays ?? 0);
   const avgHoldingDays = round2(mean(holdingDays));
 
