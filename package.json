@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "start": "node dist/routes/routes.js",
     "dev": "npx tsc && node dist/routes/routes.js"
   },
@@ -27,12 +27,12 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
-    
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@types/node": "^25.5.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
@@ -43,7 +43,6 @@
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "resend": "^6.9.4",
-    "tsx": "^4.21.0",
-    "@types/node": "^25.5.0"
+    "tsx": "^4.21.0"
   }
 }
