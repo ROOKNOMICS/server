@@ -5,6 +5,7 @@ import { GET } from '../api/prices.js'
 import cors, { CorsOptions } from 'cors';
 import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions))
+app.use(cookieParser());  
 app.options('/backtest', cors(corsOptions))
 app.options('/api/prices', cors(corsOptions))
 app.use(express.json());

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   register,
   login,
+  logout,
   googleAuth,
   getMe,
   verifyOTP,
@@ -16,5 +17,6 @@ router.post('/resend-otp',  resendOTP);
 router.post('/login', login);
 router.post('/google', googleAuth);
 router.get('/me', protect, getMe);
+router.post('/logout',logout); 
 
 export default router;
