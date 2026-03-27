@@ -6,6 +6,7 @@ import cors, { CorsOptions } from 'cors';
 import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
 import cookieParser from 'cookie-parser';
+import { saveBacktest, getUserBacktests, getBacktestById, deleteBacktest, withAuth } from '../controller/backtestController.js';
 
 dotenv.config();
 
@@ -37,10 +38,17 @@ app.use(cors(corsOptions))
 app.use(cookieParser());  
 app.options('/backtest', cors(corsOptions))
 app.options('/api/prices', cors(corsOptions))
+app.options('/api/backtests', cors(corsOptions))
 app.use(express.json());
 app.post('/backtest', backtestController)
 
 app.get('/api/prices', GET)
+
+// Backtest management routes
+app.post('/api/backtests', withAuth(saveBacktest));
+app.get('/api/backtests', withAuth(getUserBacktests));
+app.get('/api/backtests/:id', withAuth(getBacktestById));
+app.delete('/api/backtests/:id', withAuth(deleteBacktest));
 
 app.use('/api/auth', authRoutes);
 
