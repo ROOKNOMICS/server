@@ -55,11 +55,12 @@ export const saveBacktest = async (req: AuthenticatedRequest, res: Response) => 
       activeRules,
       rulesConfig,
       results: {
-        ...results,
-        portfolioMetrics: results.portfolioMatrics, // Fix typo mapping
-        benchmarkMetrics: results.benchmarkMatrics   // Fix typo mapping
+        performance: results.performance,
+        trades: results.trades,
+        verdict: results.verdict,
       },
     });
+
 
     await backtest.save();
 
