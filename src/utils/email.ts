@@ -25,5 +25,8 @@ export const sendEmail = async (email: string, otp: string) => {
     });
   } catch (err) {
     console.error('Email send error:', err);
+    // Re-throw so the controller can return a proper error to the client
+    // instead of silently succeeding while the email never arrives.
+    throw new Error('Failed to send OTP email. Please try again.');
   }
 };

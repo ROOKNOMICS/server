@@ -1,8 +1,8 @@
-import express from 'express'
+import express from 'express';
 import dotenv from 'dotenv';
-import backtestController from '../controller/data.controller.js'
-import { GET } from '../api/prices.js'
-import cors, { CorsOptions } from 'cors';
+import cors, { type CorsOptions } from 'cors';
+import backtestController from '../controller/data.controller.js';
+import { GET } from '../api/prices.js';
 import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
 import cookieParser from 'cookie-parser';
@@ -10,11 +10,9 @@ import { saveBacktest, getUserBacktests, getBacktestById, deleteBacktest, withAu
 
 dotenv.config();
 
-const app = express()
+const app = express();
 connectDB();
 const PORT = process.env.PORT || 3000;
-
-
 
 const allowedOrigins = [
   'http://localhost:8080',
@@ -30,7 +28,7 @@ const corsOptions: CorsOptions = {
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
 
@@ -40,9 +38,6 @@ app.options('/backtest', cors(corsOptions))
 app.options('/api/prices', cors(corsOptions))
 app.options('/api/backtests', cors(corsOptions))
 app.use(express.json());
-app.post('/backtest', backtestController)
-
-app.get('/api/prices', GET)
 
 // Backtest management routes
 app.post('/api/backtests', withAuth(saveBacktest));
@@ -51,7 +46,8 @@ app.get('/api/backtests/:id', withAuth(getBacktestById));
 app.delete('/api/backtests/:id', withAuth(deleteBacktest));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/simulations', simulationRoutes);
 
-app.listen(PORT,()=>{
-  console.log(`listening @ ${PORT}`)
-})
+app.listen(PORT, () => {
+  console.log(`listening @ ${PORT}`);
+});

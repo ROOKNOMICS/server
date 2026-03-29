@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/routes/routes.js",
-    "dev": "npx tsc && node dist/routes/routes.js"
+    "dev": "npx tsc && node dist/routes/routes.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

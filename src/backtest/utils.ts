@@ -1,4 +1,3 @@
-
 export function mean(arr: (number | null)[]): number {
   const valid = arr.filter((x): x is number => x !== null && !isNaN(x));
   if (valid.length === 0) return 0;

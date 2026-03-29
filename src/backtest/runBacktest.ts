@@ -13,48 +13,53 @@ import type {
 
 export interface RulesConfig {
   rsi?: {
-    enabled:   boolean
-    period:    number
-    buyBelow:  number
+    enabled: boolean
+    period: number
+    buyBelow: number
     sellAbove: number
   }
   maCross?: {
-    enabled:    boolean
-    type:       'SMA' | 'EMA'
+    enabled: boolean
+    type: 'SMA' | 'EMA'
     fastPeriod: number
     slowPeriod: number
   }
 }
 
 export function runBacktest(
-  prices:          PriceBar[],
-  indicators:      Indicators,
+  prices: PriceBar[],
+  indicators: Indicators,
   activeRuleNames: string[],
-  capital:         number = 10000,
-  rulesConfig:     RulesConfig
+  capital: number = 10000,
+  rulesConfig: RulesConfig
 ): BacktestResult {
-
-  
   if (rulesConfig.rsi?.enabled && RULES['RSI Entry']) {
-    const rsiRule = RULES['RSI Entry'] as any
-    rsiRule._buyBelow  = rulesConfig.rsi.buyBelow  
-    rsiRule._sellAbove = rulesConfig.rsi.sellAbove  
-    rsiRule._period    = rulesConfig.rsi.period    
+    const rsiRule = RULES['RSI Entry'] as Rule & {
+      _buyBelow?: number;
+      _sellAbove?: number;
+      _period?: number;
+    };
+    rsiRule._buyBelow = rulesConfig.rsi.buyBelow;
+    rsiRule._sellAbove = rulesConfig.rsi.sellAbove;
+    rsiRule._period = rulesConfig.rsi.period;
   }
 
   if (rulesConfig.maCross?.enabled && RULES['MA Crossover']) {
-    const maRule = RULES['MA Crossover'] as any
-    maRule._fastPeriod = rulesConfig.maCross.fastPeriod  
-    maRule._slowPeriod = rulesConfig.maCross.slowPeriod  
-    maRule._type       = rulesConfig.maCross.type       
+    const maRule = RULES['MA Crossover'] as Rule & {
+      _fastPeriod?: number;
+      _slowPeriod?: number;
+      _type?: 'SMA' | 'EMA';
+    };
+    maRule._fastPeriod = rulesConfig.maCross.fastPeriod;
+    maRule._slowPeriod = rulesConfig.maCross.slowPeriod;
+    maRule._type = rulesConfig.maCross.type;
   }
 
-  
   const filteredRuleNames = activeRuleNames.filter(name => {
-    if (name === 'RSI Entry')    return rulesConfig.rsi?.enabled    ?? true
-    if (name === 'MA Crossover') return rulesConfig.maCross?.enabled ?? true
-    return true 
-  })
+    if (name === 'RSI Entry') return rulesConfig.rsi?.enabled ?? true;
+    if (name === 'MA Crossover') return rulesConfig.maCross?.enabled ?? true;
+    return true;
+  });
 
   if (prices.length === 0) {
     return {
@@ -68,7 +73,7 @@ export function runBacktest(
   }
 
   const firstBar = prices[0];
-  const lastBar  = prices[prices.length - 1];
+  const lastBar = prices[prices.length - 1];
 
   if (!firstBar || !lastBar) {
     return {
@@ -81,25 +86,23 @@ export function runBacktest(
     };
   }
 
-  
   const state: PortfolioState = {
-    cash:         capital,
-    shares:       0,
-    entryPrice:   0,
-    entryDate:    null,
+    cash: capital,
+    shares: 0,
+    entryPrice: 0,
+    entryDate: null,
     trailingHigh: 0,
   };
 
   const equityCurve: EquityPoint[] = [];
-  const tradeLog:    TradeEvent[]  = [];
-
+  const tradeLog: TradeEvent[] = [];
 
   for (let i = 1; i < prices.length; i++) {
     const today = prices[i];
     if (!today) continue;
 
     const todayDate = today.date ?? '';
-    const price     = today.close;
+    const price = today.close;
 
     if (state.shares > 0) {
       state.trailingHigh = Math.max(state.trailingHigh, price);
@@ -117,10 +120,10 @@ export function runBacktest(
       const sharesToBuy = Math.floor(state.cash / price);
 
       if (sharesToBuy > 0) {
-        state.shares      = sharesToBuy;
-        state.cash       -= sharesToBuy * price;
-        state.entryPrice  = price;
-        state.entryDate   = today.date;
+        state.shares = sharesToBuy;
+        state.cash -= sharesToBuy * price;
+        state.entryPrice = price;
+        state.entryDate = today.date;
         state.trailingHigh = price;
 
         const triggerRule = filteredRuleNames.find(
@@ -128,24 +131,22 @@ export function runBacktest(
         ) ?? 'Unknown';
 
         tradeLog.push({
-          date:       today.date,
-          type:       'BUY',
-          price:      round2(price),
-          shares:     state.shares,
+          date: today.date,
+          type: 'BUY',
+          price: round2(price),
+          shares: state.shares,
           totalValue: round2(state.shares * price),
-          signal:     triggerRule,
-          pnl:        null,
-          pnlPct:     null,
+          signal: triggerRule,
+          pnl: null,
+          pnlPct: null,
           holdingDays: null,
         });
       }
-    }
-
-    else if (shouldSell) {
+    } else if (shouldSell) {
       const proceeds = state.shares * price;
-      const pnl      = proceeds - state.shares * state.entryPrice;
-      const pnlPct   = (pnl / (state.shares * state.entryPrice)) * 100;
-      const holding  = state.entryDate && today.date
+      const pnl = proceeds - state.shares * state.entryPrice;
+      const pnlPct = (pnl / (state.shares * state.entryPrice)) * 100;
+      const holding = state.entryDate && today.date
         ? daysBetween(state.entryDate, today.date)
         : 0;
 
@@ -154,37 +155,37 @@ export function runBacktest(
       ) ?? 'Unknown';
 
       tradeLog.push({
-        date:        todayDate,
-        type:        'SELL',
-        price:       round2(price),
-        shares:      state.shares,
-        totalValue:  round2(proceeds),
-        signal:      triggerRule,
-        pnl:         round2(pnl),
-        pnlPct:      round2(pnlPct),
+        date: todayDate,
+        type: 'SELL',
+        price: round2(price),
+        shares: state.shares,
+        totalValue: round2(proceeds),
+        signal: triggerRule,
+        pnl: round2(pnl),
+        pnlPct: round2(pnlPct),
         holdingDays: holding,
       });
 
-      state.cash        += proceeds;
-      state.shares       = 0;
-      state.entryPrice   = 0;
-      state.entryDate    = null;
+      state.cash += proceeds;
+      state.shares = 0;
+      state.entryPrice = 0;
+      state.entryDate = null;
       state.trailingHigh = 0;
     }
 
     const portfolioValue = state.cash + state.shares * price;
     equityCurve.push({
-      date:  todayDate,
+      date: todayDate,
       value: round2(portfolioValue),
     });
   }
 
   const metrics = calculateMetrics(equityCurve, tradeLog, capital);
 
-  const buyHoldShares     = Math.floor(capital / firstBar.close);
+  const buyHoldShares = Math.floor(capital / firstBar.close);
   const buyHoldFinalValue = buyHoldShares * lastBar.close
     + (capital - buyHoldShares * firstBar.close);
-  const benchmarkReturn   = round2(
+  const benchmarkReturn = round2(
     (buyHoldFinalValue - capital) / capital * 100
   );
 
@@ -192,7 +193,7 @@ export function runBacktest(
     equityCurve,
     tradeLog,
     metrics,
-    activeRules:         filteredRuleNames,
+    activeRules: filteredRuleNames,
     benchmarkReturn,
     benchmarkFinalValue: round2(buyHoldFinalValue),
   };

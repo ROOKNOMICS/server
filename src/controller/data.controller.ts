@@ -26,7 +26,7 @@ const backtestController = async (
   ) {
     return res.status(400).json({
       error:
-        'Invalid request body. Expected symbol, startDate, endDate, capital, and activeRules.',
+        'Invalid request body. Expected symbol, startDate, endDate, capital, activeRules, and rulesConfig.',
     })
   }
 
