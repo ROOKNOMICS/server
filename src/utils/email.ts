@@ -1,8 +1,9 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 export const sendEmail = async (email: string, otp: string) => {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     await resend.emails.send({
       from: 'ROOKNOMICS <no-reply@thisissud.space>',
