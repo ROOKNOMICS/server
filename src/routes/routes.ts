@@ -6,6 +6,7 @@ import { GET } from '../api/prices.js';
 import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
 import simulationRoutes from './simulationRoutes.js';
+import userRoutes from './userRoutes.js';
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ const corsOptions: CorsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
@@ -42,6 +43,7 @@ app.post('/api/backtest/run', backtestController);
 app.get('/api/prices', GET);
 app.use('/api/auth', authRoutes);
 app.use('/api/simulations', simulationRoutes);
+app.use('/api/user', userRoutes);
 
 app.listen(PORT, () => {
   console.log(`listening @ ${PORT}`);
