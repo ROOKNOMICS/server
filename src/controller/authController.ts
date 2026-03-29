@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import PendingOTP from '../models/PendingOTP.js';
 import { generateOTP, hashOTP } from '../utils/otp.js';
 import { sendEmail } from '../utils/email.js';
+import { getCookieOptions , clearCookieOptions} from '../utils/cookieOptions.js';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -128,13 +129,16 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
     // Generate JWT and return — user is now logged in
     const token = generateToken(user._id);
 
+    // ── SET COOKIE instead of returning token in body ─────
+    res.cookie('token', token, getCookieOptions());
+
+    // ── Only return user — NO token in body anymore ───────
     res.status(201).json({
       message: 'Email verified. Account created successfully.',
-      token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
+        id:     user._id,
+        name:   user.name,
+        email:  user.email,
         avatar: user.avatar,
       },
     });
@@ -206,8 +210,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ message: 'Email and password are required' });
       return;
     }
-console.log('Login attempt for email:', email);
-console.log('Password provided:', password ? 'Yes' : 'No');
+
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       res.status(401).json({ message: 'Invalid email ' });
@@ -221,8 +224,11 @@ console.log('Password provided:', password ? 'Yes' : 'No');
     }
     const token = generateToken(user._id);
 
+    // ── SET COOKIE instead of returning token in body ─────
+    res.cookie('token', token, getCookieOptions());
+
+    // ── Only return user — NO token in body anymore ───────
     res.status(200).json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -301,4 +307,9 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
+};
+
+export const logout = (req: Request, res: Response): void => {
+  res.clearCookie('token', clearCookieOptions());
+  res.status(200).json({ message: 'Logged out successfully' });
 };
