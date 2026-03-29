@@ -1,4 +1,3 @@
-// ── Raw price data from T1 ──────────────
 export interface PriceBar {
   date: string;
   open: number;
@@ -8,21 +7,18 @@ export interface PriceBar {
   volume: number;
 }
 
-
 export interface BollingerBand {
   upper: number;
   mid: number;
   lower: number;
 }
 
-// ── All indicators from frontend ───
 export interface Indicators {
   ma20: (number | null)[];
   ma50: (number | null)[];
   rsi14: (number | null)[];
   bb: (BollingerBand | null)[];
 }
-
 
 export interface PortfolioState {
   cash: number;
@@ -32,12 +28,10 @@ export interface PortfolioState {
   trailingHigh: number;
 }
 
-
 export interface EquityPoint {
   date: string;
   value: number;
 }
-
 
 export interface TradeEvent {
   date: string;
@@ -51,28 +45,26 @@ export interface TradeEvent {
   holdingDays: number | null;
 }
 
-
 export interface BacktestMetrics {
   totalReturn: number;
   finalValue: number;
   maxDrawdown: number;
   sharpeRatio: number;
+  dailyVolatility: number;
   winRate: number;
   profitFactor: number;
   avgHoldingDays: number;
   totalTrades: number;
 }
 
-
 export interface BacktestResult {
   equityCurve: EquityPoint[];
   tradeLog: TradeEvent[];
   metrics: BacktestMetrics;
   activeRules: string[];
-  benchmarkReturn: number;      
-  benchmarkFinalValue: number;  
+  benchmarkReturn: number;
+  benchmarkFinalValue: number;
 }
-
 
 export interface Rule {
   buySignal: (
