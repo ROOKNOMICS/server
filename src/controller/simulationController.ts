@@ -70,6 +70,30 @@ export const getSimulation = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+// GET /api/user/stats
+export const getUserStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).userId as string;
+
+    const simulations = await Simulation.find({ userId }).select('performance');
+
+    if (simulations.length === 0) {
+      res.status(200).json({ stats: null });
+      return;
+    }
+
+    const returns = simulations.map((s) => (s.performance as any).totalReturn as number);
+    const totalSimulations = simulations.length;
+    const avgReturn = returns.reduce((a, b) => a + b, 0) / totalSimulations;
+    const bestPerformance = Math.max(...returns);
+
+    res.status(200).json({ stats: { totalSimulations, avgReturn, bestPerformance } });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({ message: 'Server error fetching stats' });
+  }
+};
+
 // DELETE /api/simulations/:id
 export const deleteSimulation = async (req: Request, res: Response): Promise<void> => {
   try {

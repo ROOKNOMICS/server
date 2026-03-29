@@ -5,6 +5,8 @@ import backtestController from '../controller/data.controller.js';
 import { GET } from '../api/prices.js';
 import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
+import simulationRoutes from './simulationRoutes.js';
+import userRoutes from './userRoutes.js';
 import cookieParser from 'cookie-parser';
 import { saveBacktest, getUserBacktests, getBacktestById, deleteBacktest, withAuth } from '../controller/backtestController.js';
 import simulationRoutes from './simulationRoutes.js';
@@ -28,7 +30,7 @@ const corsOptions: CorsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
@@ -48,6 +50,7 @@ app.delete('/api/backtests/:id', withAuth(deleteBacktest));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/simulations', simulationRoutes);
+app.use('/api/user', userRoutes);
 
 app.listen(PORT, () => {
   console.log(`listening @ ${PORT}`);
