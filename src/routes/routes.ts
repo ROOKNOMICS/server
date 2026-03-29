@@ -7,6 +7,7 @@ import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
 import cookieParser from 'cookie-parser';
 import { saveBacktest, getUserBacktests, getBacktestById, deleteBacktest, withAuth } from '../controller/backtestController.js';
+import simulationRoutes from './simulationRoutes.js';
 
 dotenv.config();
 
