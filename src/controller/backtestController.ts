@@ -12,8 +12,11 @@ interface AuthenticatedRequest extends Request {
 }
 
 const authenticateToken = (req: AuthenticatedRequest, res: Response, next: Function) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : undefined;
+  const token = req.cookies?.token || bearerToken;
 
   if (!token) {
     return res.status(401).json({ message: 'Access token required' });
@@ -54,11 +57,7 @@ export const saveBacktest = async (req: AuthenticatedRequest, res: Response) => 
       initialCapital: capital,
       activeRules,
       rulesConfig,
-      results: {
-        ...results,
-        portfolioMetrics: results.portfolioMatrics, // Fix typo mapping
-        benchmarkMetrics: results.benchmarkMatrics   // Fix typo mapping
-      },
+      results,
     });
 
     await backtest.save();

@@ -273,6 +273,7 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       }
     }
     const token = generateToken(user._id);
+    res.cookie('token', token, getCookieOptions());
 
     res.status(200).json({
       token,

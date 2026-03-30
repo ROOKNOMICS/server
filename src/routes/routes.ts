@@ -37,9 +37,13 @@ const corsOptions: CorsOptions = {
 app.use(cors(corsOptions))
 app.use(cookieParser());  
 app.options('/backtest', cors(corsOptions))
+app.options('/api/backtest', cors(corsOptions))
 app.options('/api/prices', cors(corsOptions))
 app.options('/api/backtests', cors(corsOptions))
 app.use(express.json());
+
+app.post('/backtest', backtestController);
+app.post('/api/backtest', backtestController);
 
 // Backtest management routes
 app.post('/api/backtests', withAuth(saveBacktest));
