@@ -1,15 +1,22 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors, { type CorsOptions } from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import backtestController from '../controller/data.controller.js';
 import { GET } from '../api/prices.js';
 import connectDB from '../config/db.js';
 import authRoutes from './authRoutes.js';
+import simulationRoutes from './simulationRoutes.js';
+import userRoutes from './userRoutes.js';
 import cookieParser from 'cookie-parser';
 import { saveBacktest, getUserBacktests, getBacktestById, deleteBacktest, withAuth } from '../controller/backtestController.js';
-import simulationRoutes from './simulationRoutes.js';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '../../../.env');
+
+dotenv.config({ path: envPath });
 
 const app = express();
 connectDB();
@@ -28,7 +35,7 @@ const corsOptions: CorsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
@@ -48,6 +55,7 @@ app.delete('/api/backtests/:id', withAuth(deleteBacktest));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/simulations', simulationRoutes);
+app.use('/api/user', userRoutes);
 
 app.listen(PORT, () => {
   console.log(`listening @ ${PORT}`);
