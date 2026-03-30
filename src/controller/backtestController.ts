@@ -55,11 +55,12 @@ export const saveBacktest = async (req: AuthenticatedRequest, res: Response) => 
       activeRules,
       rulesConfig,
       results: {
-         performance: results.performance,
+        performance: results.performance,
         trades: results.trades,
         verdict: results.verdict,
       },
     });
+
 
     await backtest.save();
 
