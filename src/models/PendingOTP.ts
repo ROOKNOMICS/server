@@ -5,7 +5,7 @@ export interface IPendingOTP extends Document {
   email: string;
   password: string;      // already hashed — safe to store temporarily
   otpHash: string;       // SHA-256 hash of the OTP, never raw
-  expiresAt: Date;       // 10 minutes from creation
+  expiresAt: Date;       // 60 seconds from creation
   attempts: number;      // track wrong attempts — max 5
   createdAt: Date;
 }

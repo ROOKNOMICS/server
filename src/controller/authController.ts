@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import { generateToken } from '../utils/generateToken.js';
 import bcrypt from 'bcryptjs';
 import PendingOTP from '../models/PendingOTP.js';
-import { generateOTP, hashOTP } from '../utils/otp.js';
+import { generateOTP, hashOTP, OTP_EXPIRY_MS, OTP_EXPIRY_SECONDS } from '../utils/otp.js';
 import { sendEmail } from '../utils/email.js';
 import { getCookieOptions , clearCookieOptions} from '../utils/cookieOptions.js';
 
@@ -35,7 +35,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Generate OTP
     const otp = generateOTP();
     const otpHash = hashOTP(otp);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
     // Delete any existing pending OTP for this email (resend scenario)
     await PendingOTP.deleteOne({ email });
@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     await sendEmail(email, otp);
 
     res.status(200).json({
-      message: 'OTP sent to your email. Please verify to complete registration.',
+      message: `OTP sent to your email. It is valid for ${OTP_EXPIRY_SECONDS} seconds. Please verify to complete registration.`,
       email, // send back so frontend knows which email to show on OTP screen
     });
 
@@ -172,7 +172,7 @@ export const resendOTP = async (req: Request, res: Response): Promise<void> => {
     // Generate a brand new OTP
     const otp = generateOTP();
     const otpHash = hashOTP(otp);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // fresh 10 minutes
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
     // Replace old OTP hash, reset expiry and attempts
     await PendingOTP.updateOne(
@@ -188,7 +188,7 @@ export const resendOTP = async (req: Request, res: Response): Promise<void> => {
     await sendEmail(email, otp);
 
     res.status(200).json({
-      message: 'A new OTP has been sent to your email.',
+      message: `A new OTP has been sent to your email. It is valid for ${OTP_EXPIRY_SECONDS} seconds.`,
     });
 
   } catch (error) {
