@@ -21,17 +21,6 @@
     "url": "https://github.com/ROOKNOMICS/server/issues"
   },
   "homepage": "https://github.com/ROOKNOMICS/server#readme",
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/mongoose": "^5.11.96",
-    "nodemon": "^3.1.14",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
   "dependencies": {
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
@@ -43,6 +32,18 @@
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "resend": "^6.9.4",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "@types/node": "^20.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
+    "typescript": "^5.9.3",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

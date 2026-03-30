@@ -57,8 +57,13 @@ export const saveBacktest = async (req: AuthenticatedRequest, res: Response) => 
       initialCapital: capital,
       activeRules,
       rulesConfig,
-      results,
+      results: {
+        performance: results.performance,
+        trades: results.trades,
+        verdict: results.verdict,
+      },
     });
+
 
     await backtest.save();
 
