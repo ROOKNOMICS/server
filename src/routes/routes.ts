@@ -48,6 +48,7 @@ app.options('/api/prices', cors(corsOptions))
 app.options('/api/backtests', cors(corsOptions))
 app.use(express.json());
 
+app.get('/api/prices', GET);
 app.post('/backtest', backtestController);
 app.post('/api/backtest', backtestController);
 
