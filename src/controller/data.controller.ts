@@ -7,7 +7,7 @@ interface BacktestRequestBody {
   endDate?: string
   capital?: number
   activeRules?: string[]
-  rulesConfig: RulesConfig
+  rulesConfig?: RulesConfig
 }
 
 const backtestController = async (
@@ -37,7 +37,7 @@ const backtestController = async (
       endDate,
       capital,
       activeRules,
-      rulesConfig
+      rulesConfig ?? {}
     )
 
     return res.status(200).json(response)
