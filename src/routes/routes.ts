@@ -22,30 +22,43 @@ const app = express();
 connectDB();
 const PORT = process.env.PORT || 3000;
 
-const allowedOrigins = [
+const allowedOrigins = new Set([
   'http://localhost:8080',
-  'https://rooknomics.vercel.app'
-];
+  'http://localhost:5173',
+  'https://rooknomics.vercel.app',
+  ...(process.env.CORS_ORIGINS?.split(',') ?? []),
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+].map((origin) => origin.trim()).filter(Boolean));
+
+const isAllowedOrigin = (origin?: string) => {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  return /^https:\/\/rooknomics(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+};
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    callback(null, isAllowedOrigin(origin));
   },
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
+  optionsSuccessStatus: 204,
 };
 
-app.use(cors(corsOptions))
+app.use(cors(corsOptions));
 app.use(cookieParser());  
-app.options('/backtest', cors(corsOptions))
-app.options('/api/backtest', cors(corsOptions))
-app.options('/api/prices', cors(corsOptions))
-app.options('/api/backtests', cors(corsOptions))
+app.options('/backtest', cors(corsOptions));
+app.options('/api/backtest', cors(corsOptions));
+app.options('/api/prices', cors(corsOptions));
+app.options('/api/backtests', cors(corsOptions));
+app.options('/api/auth/register', cors(corsOptions));
+app.options('/api/auth/verify-otp', cors(corsOptions));
+app.options('/api/auth/resend-otp', cors(corsOptions));
+app.options('/api/auth/login', cors(corsOptions));
+app.options('/api/auth/google', cors(corsOptions));
+app.options('/api/auth/logout', cors(corsOptions));
 app.use(express.json());
 
 app.get('/api/prices', GET);
